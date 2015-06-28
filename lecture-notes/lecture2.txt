@@ -1,0 +1,162 @@
+Lecture 2 - 
+
+Topics: C/C++ Data Types - Interpretations, Sizes, Bits- How Bytes are Broken Up into Bits, Breaking Up a Character's Decimal Value into its Underlying Bit Structure, Shorts - Interpreting Data that Consists of More Than One Byte, Representations of Negative Numbers, The Sign Bit, Two's Complement Addition, Converting Between Chars and Shorts, How the Bit Representation is Transferred, Converting Between ints and shorts, Sign Extending During Conversion, Floats, Converting Between Integers and Floats
+
+bool
+char - one of 256 characters
+ - 1 byte in memory
+short - numeric
+ - 2 bytes
+int - numeric
+ - 2-4 bytes (will pretend always 4, why does it vary?)
+long - numeric
+ - 4 bytes
+float
+ - 4 bytes
+ - represents an arbitrarily precise number
+double
+ - 8 bytes
+
+
+binary digit -> bit
+ - small unit of memory that can store a zero or one
+ - not practical to represent booleans with a bit - WHY NOT??
+ - interesting in groups!!
+
+[ 0/1 | 0/1 | 0/1 |0/1 |0/1 |0/1 |0/1 |0/1 |0/1 |
+
+1 byte = 8 bits
+2 options => 2^8 = 256 options in one byte
+Represent letters in base 2
+
+
+CHARACTERS
+==========
+
+'A' = 65
+      64 + 1
+      2^6 + 2^0
+      0 1 0 0 0 0 0 1
+in an 8 bit representation, the 1s are in the position from the right of their power
+(zero indexed)
+
+SHORT
+=====
+
+2 bytes
+2 neighboring bytes in memory
+2^16 different values
+
+0 0 0 0 0 0 0 1 0 | 0 0 0 0 0 1 1 1
+             2^9          2^2  2^1  2^0
+Add them together
+Get 519
+
+0 1 1 1 1 1 1 1 1 | 1 1 1 1 1 1 1 1
+0 followed by all 1s is like 2^15 - 1
+
+First bit is usually a sign bit - indicates positive or negative
+We engineer negative numbers to make binary addition easier
+Invert the number and add 1 to it to represent a negative number
+ - this is called two's complement
+
+
+```
+char ch = 'A';
+short s = ch;
+cout << s << endl;
+// prints 65
+// translated from 1 byte to 2 bytes
+```
+
+```
+short s = 67;
+char ch - s;
+cout << ch << endl;
+// prints a 'C'
+// will punt on the bits they don't have room for
+
+```
+
+****** Lecture examples are in C++ - I'm doing them in C.
+
+```
+short s = 2^10 + 2^3 + 2^0 // not real C
+int i = s;
+// what happens?
+// more bits representing the same number - just a lot of zeros
+```
+
+
+```
+int i = 2^23 + 23^21 + 2^14 + 7;
+short s = i;
+// what happens?
+// int is bigger than 16 bits
+// truncates the number
+// s = 2^14 + 7
+```
+
+what happens when you make the above 2^15? what happens to the sign bit? 
+
+```
+short s = -1;
+// BIT PATTERN ^^
+// bit pattern for 1:   | 0 0 0 0 | 0 0 0 0 | 0 0 0 0 | 0 0 0 1 | 
+// bit pattern for -1:  | 1 1 1 1 | 1 1 1 1 | 1 1 1 1 | 1 1 1 1 |
+// all 1s!
+int i = s;
+// int i is now 32 bits of all 1s - 'sign extend the figure' 
+
+
+FLOAT
+==========
+
+Use some bits to represent decimals
+
+use the end bits to be 2^-2, 2^-3, 2^-4 etc.
+
+| 0 0 0 0 1 1 1 1 | << not 15, but 7.5 ????
+
+BC you're using finite memory, you won't be exact.
+
+THIS IS NOT HOW FLOATS ARE REPRESENTED!!
+
+You can interpret bits however you want, as long as you're consistent
+
+
+
+| <<< 1 bit sign 's' >>> | <<< 'exp' 8 magnitude bits - unsigned integer >>> | <<< '.xxxxx' 23 bits of negative exponent decimals >>> |
+
+(-1)^s 1.xxxxx * 2^(exp - 127)
+*** where does the 127 come from??
+7.0 = 7.0 x 2^0
+    = 3.5 x 2^1
+
+```
+int i = 5; 
+float f = i;
+```
+
+assigning between ints and floats requires creating a new bit pattern
+5 = 1.25 * 2^2 ******* WHY????
+^^ is that arbitrary?
+exp = 129
+xxx = .25
+
+```
+int i = 37;
+float f = *(float*)&i;
+```
+^^ only evaluates the location of `i`
+&i is a pointer to a memory address
+`f` is going to be some ridiculously small number, because they're all in the decimal positions
+
+
+```
+float f = 7.0;
+short s = *(short*)&f;
+// only sees the first (left) 16 bits
+```
+
+s will be non-zero
